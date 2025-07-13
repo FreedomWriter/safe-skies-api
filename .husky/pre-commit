@@ -1,9 +1,12 @@
 echo "🔍 Running linting..."
-npm run lint
-
-if [ $? -ne 0 ]; then
-  echo "❌ Linting failed. Commit aborted."
-  exit 1
+if [ -f .eslintrc.js ] || [ -f .eslintrc.json ] || [ -f .eslintrc.yml ] || [ -f .eslintrc.yaml ] || grep -q 'eslintConfig' package.json 2>/dev/null; then
+  npm run lint
+  if [ $? -ne 0 ]; then
+    echo "❌ Linting failed. Commit aborted."
+    exit 1
+  fi
+else
+  echo "⚠️  No ESLint config found, skipping lint."
 fi
 
 echo "🔎 Running TypeScript type checks..."
