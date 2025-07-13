@@ -321,6 +321,78 @@ This setup allows OAuth providers to redirect back to your local development env
   Response:
   Returns a summary of the processing of each report.
 
+### ATProto Proxy (Authenticated)
+
+All ATProto proxy endpoints require authentication via JWT token.
+
+**⚡ Performance Note**: These endpoints prioritize fast response times by acting as direct proxies to ATProto's search APIs. For moderation workflows, we recommend using dedicated moderation endpoints rather than trying to determine moderation context during search, as this significantly improves performance.
+
+**⚠️ Pagination Limitation**: Due to a known issue in ATProto's search API ([#3583](https://github.com/bluesky-social/atproto/issues/3583)), pagination may be limited. The API sometimes returns invalid cursors that cause errors. Our implementation filters out these invalid cursors to prevent errors.
+
+- **GET /api/atproto/search/posts**
+  Search for posts using ATProto's searchPosts endpoint.
+  Query Parameters:
+  - `q` (required): Search query string
+  - `sort`: Sort order (optional)
+  - `since`: Start date filter (optional)
+  - `until`: End date filter (optional)
+  - `author`: Filter by author (optional)
+  - `mentions`: Filter by mentions (optional)
+  - `hashtags`: Filter by hashtags (optional)
+  - `limit`: Number of results (default: 25, max: 100)
+  - `cursor`: Pagination cursor for next page (optional)
+
+  Response:
+  Returns posts and cursor for pagination in standard ATProto format.
+
+- **GET /api/atproto/search/users**
+  Search for users/actors using ATProto's searchActors endpoint.
+  Query Parameters:
+  - `q` (required): Search query string
+  - `limit`: Number of results (default: 25)
+  - `cursor`: Pagination cursor for next page (optional)
+
+  Response:
+  Returns actors and cursor for pagination.
+
+- **GET /api/atproto/posts**
+  Get posts by their AT-URIs using the getPosts endpoint.
+  Query Parameters:
+  - `uris` (required): Comma-separated list of AT-URIs (max 25)
+
+  Response:
+  Returns array of posts in standard ATProto format.
+
+#### Recommended Moderation Workflow
+
+For applications requiring moderation context, we recommend the following workflow:
+
+1. **Search/Discovery**: Use the fast ATProto proxy endpoints (`/api/atproto/search/posts`, `/api/atproto/search/users`) for post discovery and search functionality
+2. **Moderation Check**: For posts that need moderation context, use dedicated moderation services (e.g., Blacksky labeler) or the `/moderation/report` endpoint
+3. **Reporting**: Use `/moderation/report` to submit posts for moderation review when needed
+
+This separation ensures optimal performance for search operations while maintaining comprehensive moderation capabilities through specialized services.
+
+#### Pagination Example
+
+Both search endpoints support cursor-based pagination:
+
+```bash
+# First page
+GET /api/atproto/search/posts?q=bluesky&limit=10
+
+# Response:
+{
+  "posts": [...],
+  "cursor": "eyJjcmVhdGVkX2F0IjoiMjAyNS0wNy0xM1QxMDowMDowMFoifQ"
+}
+
+# Next page using the cursor
+GET /api/atproto/search/posts?q=bluesky&limit=10&cursor=eyJjcmVhdGVkX2F0IjoiMjAyNS0wNy0xM1QxMDowMDowMFoifQ
+
+# Continue until no cursor is returned (end of results)
+```
+
 **TODO:** Add detailed API documentation for each endpoint.
 
 ## Testing
