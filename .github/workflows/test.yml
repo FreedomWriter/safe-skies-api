@@ -1,0 +1,49 @@
+name: Tests / Backend
+on:
+  pull_request_target:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-container:
+    runs-on: ubuntu-latest
+    env:
+      PGUSER: postgres
+      PGPASSWORD: password
+      PGHOST: db
+      PGDATABASE: safeskiesdb
+      PGPORT: 5432
+      HUSKY: 0
+    container: node:22.14-bookworm-slim
+
+    services:
+      db:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: safeskiesdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Run migrations
+        run: npm run migrate:up
+      - name: Run tests
+        run: npm run test
