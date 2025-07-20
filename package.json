@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js",
-    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --silent",
     "test:watch": "NODE_ENV=test npm test -- --watch",
     "test:coverage": "NODE_ENV=test jest --coverage --forceExit",
     "test:e2e": "newman run postman/safe-skies-api.postman_collection.json",
