@@ -30,7 +30,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use((req, res, next) => {
+app.use((req, _, next) => {
   if (process.env.NODE_ENV === 'development') {
     console.log(`Incoming request: ${req.method} ${req.url}`);
   }

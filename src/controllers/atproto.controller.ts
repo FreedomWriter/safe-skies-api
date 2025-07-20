@@ -1,6 +1,18 @@
 import { Request, Response } from 'express';
 import { AtprotoAgent } from '../repos/atproto';
 
+interface SearchParams {
+  q: string;
+  sort: string;
+  since: string;
+  until: string;
+  author: string;
+  mentions: string;
+  hashtags: string;
+  limit: number;
+  cursor: string;
+}
+
 /**
  * Search for posts using ATProto's searchPosts endpoint
  * Supports pagination via cursor parameter
@@ -8,26 +20,34 @@ import { AtprotoAgent } from '../repos/atproto';
 export const searchPosts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { q, sort, since, until, author, mentions, hashtags, limit, cursor } = req.query;
-    
+
     // Debug logging for cursor value
     if (cursor) {
       console.log('Received cursor:', cursor, 'Type:', typeof cursor);
-      
+
       // Log if we detect a numeric cursor (might be ATProto search API behavior)
       if (/^\d+$/.test(cursor as string)) {
         console.warn('Numeric cursor detected (ATProto search API behavior):', cursor);
         // Don't reject - let's see if ATProto accepts it
       }
     }
-    
+
     if (!q || typeof q !== 'string') {
       res.status(400).json({ error: 'Query parameter "q" is required' });
       return;
     }
 
     // Build search parameters
-    const searchParams: any = {
-      q: q as string,
+    const searchParams: SearchParams = {
+      q,
+      sort: "",
+      since: "",
+      until: "",
+      author: "",
+      mentions: "",
+      hashtags: "",
+      limit: 25,
+      cursor: ""
     };
 
     // Add optional parameters if provided
@@ -45,7 +65,10 @@ export const searchPosts = async (req: Request, res: Response): Promise<void> =>
     // Debug logging for response cursor
     console.log('ATProto response cursor:', response.data.cursor, 'Type:', typeof response.data.cursor);
 
-    const responseData: any = {
+
+    // not sure what the correct type is for "response" but we can infer it
+    type ResponseData = typeof response.data
+    const responseData: ResponseData = {
       posts: response.data.posts,
     };
 
@@ -71,15 +94,22 @@ export const searchPosts = async (req: Request, res: Response): Promise<void> =>
 export const searchUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const { q, limit, cursor } = req.query;
-    
+
     if (!q || typeof q !== 'string') {
       res.status(400).json({ error: 'Query parameter "q" is required' });
       return;
     }
 
-    const searchParams: any = {
+    const searchParams: SearchParams = {
       q: q as string,
       limit: limit ? parseInt(limit as string) : 25,
+      sort: "",
+      since: "",
+      until: "",
+      author: "",
+      mentions: "",
+      hashtags: "",
+      cursor: ""
     };
 
     // Add cursor for pagination if provided
@@ -103,7 +133,7 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { uris } = req.query;
-    
+
     if (!uris) {
       res.status(400).json({ error: 'Query parameter "uris" is required' });
       return;
