@@ -214,6 +214,9 @@ Getting the entire backend running with docker takes a few steps:
 
 1. If you don't have Docker installed or would like to proceed without it you can skip this part and continue following the steps below. If you would like to try running the backend with Docker you can [install it here](https://www.docker.com/)
 
+> [!NOTE]
+> If you're running the backend with docker then you'll want to use the `npm run test:docker` command to run the tests.
+
 2. Update your `.env` file
 
 ```diff

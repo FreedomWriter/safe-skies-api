@@ -1,14 +1,16 @@
 import { mockServicesConfig } from "../fixtures/moderation.fixtures";
 
+jest.mock("../../src/repos/moderation", () => ({
+  getModerationServicesConfig: jest.fn(),
+}));
+
+import { getModerationServicesConfig } from "../../src/repos/moderation";
+
 /**
  * Setup function to mock the moderation services module
  */
 export const setupPermissionsMocks = (): void => {
-	jest.mock("../../src/repos/moderation", () => {
-		return {
-			getModerationServicesConfig: jest
-				.fn()
-				.mockResolvedValue(mockServicesConfig),
-		};
-	});
+  (getModerationServicesConfig as jest.Mock).mockResolvedValue(
+    mockServicesConfig,
+  );
 };

@@ -18,7 +18,13 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🧪 Running tests..."
-npm test
+if docker ps --format '{{.Names}}' | grep -q '^safe-skies-api-backend'; then
+  echo "🛳  Detected backend running in Docker, running test:docker..."
+  npm run test:docker
+else
+  echo "💻  Backend not running in Docker, running tests on host..."
+  npm test
+fi
 
 if [ $? -ne 0 ]; then
   echo "❌ Tests failed. Commit aborted."

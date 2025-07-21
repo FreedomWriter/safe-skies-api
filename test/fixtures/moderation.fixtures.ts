@@ -19,6 +19,12 @@ export const mockServicesConfig: ModerationService[] = [
 		feed_gen_endpoint: "http://example.com",
 		admin_did: "admin2",
 	},
+	{
+		value: "blacksky",
+		label: "Blacksky",
+		feed_gen_endpoint: "https://example.com/feed?creator=did:plc:w4xbfzo7kqfes5zb7r6qv3rw",
+		admin_did: "did:plc:w4xbfzo7kqfes5zb7r6qv3rw",
+	},
 ];
 
 // Sample moderation services for testing
