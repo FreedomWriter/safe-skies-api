@@ -78,9 +78,11 @@ export const canPerformWithRole = (
 	switch (action) {
 		case "mod_promote":
 		case "mod_demote":
+			return role === "admin";
 		case "user_unban":
 		case "user_ban":
-			return role === "admin";
+		case "user_mute":
+		case "user_unmute":
 		case "post_delete":
 		case "post_restore":
 			return role === "mod" || role === "admin";

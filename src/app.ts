@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import authRouter from './routes/auth';
+import adminAuthRouter from './routes/admin-auth';
 import clientMetadataRouter from './routes/clientMetadata';
 import feedsRouter from './routes/feeds';
 import devRouter from './routes/dev';
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/admin/auth', adminAuthRouter);
 app.use('/oauth', clientMetadataRouter);
 app.use('/api/feeds', feedsRouter);
 app.use('/api', profileRouter);

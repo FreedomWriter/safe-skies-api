@@ -25,3 +25,17 @@ export const BLUE_SKY_CLIENT_META_DATA: OAuthClientMetadataInput = {
 	token_endpoint_auth_method: "none",
 	dpop_bound_access_tokens: true,
 };
+
+export const BLUE_SKY_ADMIN_CLIENT_META_DATA: OAuthClientMetadataInput = {
+	// Must be a URL that will expose admin client metadata
+	client_id: `${baseUrl}/admin/auth/client-metadata.json`,
+	client_name: 'Safe Skies Admin',
+	client_uri: baseUrl,
+	redirect_uris: [`${baseUrl}/admin/auth/callback`],
+	grant_types: ['authorization_code', 'refresh_token'],
+	scope: 'atproto transition:generic',
+	response_types: ['code'],
+	application_type: 'web',
+	token_endpoint_auth_method: 'none',
+	dpop_bound_access_tokens: true,
+}

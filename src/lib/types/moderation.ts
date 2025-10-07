@@ -3,6 +3,8 @@ export type ModAction =
 	| "post_restore"
 	| "user_ban"
 	| "user_unban"
+	| "user_mute"
+	| "user_unmute"
 	| "mod_promote"
 	| "mod_demote";
 
@@ -44,4 +46,24 @@ export interface BannedFromTV {
 	reason: string | null;
 	createdAt: string | null;
 	tags: string[] | null;
+}
+
+export interface MutedUser {
+	did: string;
+	reason: string | null;
+	muted_at: Date;
+	muted_by: string;
+	last_synced_at: Date | null;
+	sync_status: "synced" | "pending" | "failed";
+	tags: string[] | null;
+	record_key: string | null;
+}
+
+export interface MuteFilters {
+	did?: string;
+	muted_by?: string;
+	sync_status?: "synced" | "pending" | "failed";
+	tag?: string;
+	limit?: number;
+	offset?: number;
 }
