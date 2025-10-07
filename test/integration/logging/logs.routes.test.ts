@@ -1,8 +1,8 @@
 import request from "supertest";
 import app from "../../../src/app";
-import { mockGetLogs, setupLogsMocks } from "../../mocks/logs.mocks";
 import { mockLogEntries } from "../../fixtures/logs.fixtures";
 import * as permissions from "../../../src/repos/permissions";
+import { getLogs }  from "../../../src/repos/logs";
 import jwt from "jsonwebtoken";
 import { LogEntry } from "../../../src/lib/types/logs";
 import {
@@ -11,8 +11,8 @@ import {
 	mockUser,
 } from "../../fixtures/user.fixtures";
 
-// Setup logs mocks
-setupLogsMocks();
+// Mock the logs repository module
+jest.mock("../../../src/repos/logs");
 
 // Mock JWT verify directly - this is the most reliable approach
 jest.mock("jsonwebtoken", () => {
@@ -34,7 +34,7 @@ describe("Logs Routes Integration", () => {
 		(permissions.getUserRoleForFeed as jest.Mock).mockResolvedValue("admin");
 
 		// Reset getLogs mock
-		mockGetLogs.mockResolvedValue(mockLogEntries);
+		(getLogs as jest.Mock).mockResolvedValue(mockLogEntries);
 	});
 
 	afterEach(() => {

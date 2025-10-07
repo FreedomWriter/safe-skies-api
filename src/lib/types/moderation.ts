@@ -32,3 +32,16 @@ export interface Report {
 	targetedPost: string;
 	targetedProfile: string;
 }
+
+export interface BanFromTV {
+	did: string;
+	reason?: string;
+	tags?: string[];
+}
+
+export interface BannedFromTV {
+	did: string;
+	reason: string | null;
+	createdAt: string | null;
+	tags: string[] | null;
+}

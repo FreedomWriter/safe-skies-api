@@ -48,3 +48,30 @@ export const getFeedGenerator = async (feed: string) => {
 		throw new Error("Failed to fetch feed generator data.");
 	}
 };
+
+/**
+ * Resolves a handle or DID to a DID.
+ * If the input is already a DID (starts with "did:"), returns it as-is.
+ * Otherwise, resolves the handle to a DID using the AtprotoAgent.
+ *
+ * @param actor - Either a DID (e.g., "did:plc:abc123") or a handle (e.g., "alice.bsky.social")
+ * @returns The resolved DID
+ */
+export const resolveHandleToDid = async (actor: string): Promise<string> => {
+	// If it's already a DID, return it
+	if (actor.startsWith("did:")) {
+		return actor;
+	}
+
+	// Otherwise, resolve the handle to a DID
+	try {
+		const response = await AtprotoAgent.resolveHandle({ handle: actor });
+		if (!response.success || !response.data.did) {
+			throw new Error("Failed to resolve handle to DID");
+		}
+		return response.data.did;
+	} catch (error) {
+		console.error("Error resolving handle to DID:", error);
+		throw new Error(`Failed to resolve handle "${actor}" to DID`);
+	}
+};

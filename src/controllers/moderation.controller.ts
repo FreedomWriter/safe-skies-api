@@ -4,11 +4,15 @@ import {
 	fetchModerationServices,
 	reportToBlacksky,
 	reportToOzone,
+	banUserFromTv,
+	unbanUserFromTv,
+	searchBannedUsersFromTv,
 } from "../repos/moderation";
 
-import { customServiceGate } from "../repos/permissions";
-import { Report } from "../lib/types/moderation";
+import { customServiceGate, canPerformAction } from "../repos/permissions";
+import { Report, BannedFromTV } from "../lib/types/moderation";
 import { createModerationLog } from "../repos/logs";
+import { resolveHandleToDid } from "../repos/atproto";
 
 export const getReportOptions = async (
 	req: Request,
@@ -210,6 +214,171 @@ export const reportModerationEvents = async (
 		res.json({ summary });
 	} catch (error: unknown) {
 		console.error("Error reporting moderation events:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const banFromTvBlacksky = async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
+	try {
+		const actingUser = req.user;
+		if (!actingUser) {
+			res.status(401).json({ error: "Unauthorized: No valid session" });
+			return;
+		}
+
+		const { actor, reason, tags } = req.body;
+		if (!actor) {
+			res.status(400).json({ error: "Missing required field: actor" });
+			return;
+		}
+
+		// Check if user has permission for Blacksky feed
+		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		if (!hasPermission) {
+			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
+			return;
+		}
+
+		// Resolve handle to DID if needed
+		let resolvedDid: string;
+		try {
+			resolvedDid = await resolveHandleToDid(actor);
+		} catch (resolveError) {
+			res.status(400).json({
+				error: `Failed to resolve actor to DID: ${resolveError instanceof Error ? resolveError.message : "Unknown error"}`
+			});
+			return;
+		}
+
+		await banUserFromTv(resolvedDid, reason, tags);
+
+		// Create moderation log
+		await createModerationLog({
+			uri: blackskyFeedUri,
+			performed_by: actingUser.did,
+			action: "user_ban",
+			target_user_did: resolvedDid,
+			metadata: {
+				reason: reason || null,
+				tags: tags || null,
+				feedName: "Blacksky",
+			},
+		});
+
+		res.status(200).json({ success: true });
+	} catch (error) {
+		console.log(error);
+		console.error("Error banning user from TV:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const unbanFromTvBlacksky = async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
+	try {
+		const actingUser = req.user;
+		if (!actingUser) {
+			res.status(401).json({ error: "Unauthorized: No valid session" });
+			return;
+		}
+
+		const { actor } = req.query;
+		if (!actor || typeof actor !== "string") {
+			res.status(400).json({ error: "Missing or invalid query parameter: actor" });
+			return;
+		}
+
+		// Check if user has permission for Blacksky feed
+		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		if (!hasPermission) {
+			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
+			return;
+		}
+
+		// Resolve handle to DID if needed
+		let resolvedDid: string;
+		try {
+			resolvedDid = await resolveHandleToDid(actor);
+		} catch (resolveError) {
+			res.status(400).json({
+				error: `Failed to resolve actor to DID: ${resolveError instanceof Error ? resolveError.message : "Unknown error"}`
+			});
+			return;
+		}
+
+		await unbanUserFromTv(resolvedDid);
+
+		// Create moderation log
+		await createModerationLog({
+			uri: blackskyFeedUri,
+			performed_by: actingUser.did,
+			action: "user_unban",
+			target_user_did: resolvedDid,
+			metadata: {
+				feedName: "Blacksky",
+			},
+		});
+
+		res.status(200).json({ success: true });
+	} catch (error) {
+		console.error("Error unbanning user from TV:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const searchBanFromTvBlacksky = async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
+	try {
+		const actingUser = req.user;
+		if (!actingUser) {
+			res.status(401).json({ error: "Unauthorized: No valid session" });
+			return;
+		}
+
+		// Check if user has permission for Blacksky feed
+		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		if (!hasPermission) {
+			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
+			return;
+		}
+
+		const { actor, tag, limit, offset } = req.query;
+		const limitNum = limit ? Number.parseInt(limit as string, 10) : undefined;
+		const offsetNum = offset ? Number.parseInt(offset as string, 10) : undefined;
+
+		// Resolve handle to DID if actor is provided
+		let resolvedDid: string | undefined;
+		if (actor && typeof actor === "string") {
+			try {
+				resolvedDid = await resolveHandleToDid(actor);
+			} catch (resolveError) {
+				res.status(400).json({
+					error: `Failed to resolve actor to DID: ${resolveError instanceof Error ? resolveError.message : "Unknown error"}`
+				});
+				return;
+			}
+		}
+
+		const bannedUsers: BannedFromTV[] = await searchBannedUsersFromTv(
+			resolvedDid,
+			tag as string | undefined,
+			limitNum,
+			offsetNum,
+		);
+
+		res.status(200).json({ bannedUsers });
+	} catch (error) {
+		console.error("Error searching banned users from TV:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
