@@ -13,6 +13,7 @@ import { customServiceGate, canPerformAction } from "../repos/permissions";
 import { Report, BannedFromTV } from "../lib/types/moderation";
 import { createModerationLog } from "../repos/logs";
 import { resolveHandleToDid } from "../repos/atproto";
+import { BLACKSKY_FEED_URI } from "../lib/constants/feeds";
 
 export const getReportOptions = async (
 	req: Request,
@@ -236,8 +237,7 @@ export const banFromTvBlacksky = async (
 		}
 
 		// Check if user has permission for Blacksky feed
-		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
-		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", BLACKSKY_FEED_URI);
 		if (!hasPermission) {
 			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
 			return;
@@ -258,7 +258,7 @@ export const banFromTvBlacksky = async (
 
 		// Create moderation log
 		await createModerationLog({
-			uri: blackskyFeedUri,
+			uri: BLACKSKY_FEED_URI,
 			performed_by: actingUser.did,
 			action: "user_ban",
 			target_user_did: resolvedDid,
@@ -295,8 +295,7 @@ export const unbanFromTvBlacksky = async (
 		}
 
 		// Check if user has permission for Blacksky feed
-		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
-		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", BLACKSKY_FEED_URI);
 		if (!hasPermission) {
 			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
 			return;
@@ -317,7 +316,7 @@ export const unbanFromTvBlacksky = async (
 
 		// Create moderation log
 		await createModerationLog({
-			uri: blackskyFeedUri,
+			uri: BLACKSKY_FEED_URI,
 			performed_by: actingUser.did,
 			action: "user_unban",
 			target_user_did: resolvedDid,
@@ -345,8 +344,7 @@ export const searchBanFromTvBlacksky = async (
 		}
 
 		// Check if user has permission for Blacksky feed
-		const blackskyFeedUri = "at://did:plc:w4xbfzo7kqfes5zb7r6qv3rw/app.bsky.feed.generator/blacksky";
-		const hasPermission = await canPerformAction(actingUser.did, "user_ban", blackskyFeedUri);
+		const hasPermission = await canPerformAction(actingUser.did, "user_ban", BLACKSKY_FEED_URI);
 		if (!hasPermission) {
 			res.status(403).json({ error: "Insufficient permissions for Blacksky feed" });
 			return;
