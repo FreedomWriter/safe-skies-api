@@ -107,3 +107,89 @@ export async function fetchModerationServices(
 		throw error;
 	}
 }
+
+export async function banUserFromTv(
+	did: string,
+	reason?: string,
+	tags?: string[],
+) {
+	try {
+		const response = await fetch(
+			`${process.env.RSKY_FEEDGEN}/admin/ban`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-RSKY-KEY": process.env.RSKY_API_KEY!,
+				},
+				body: JSON.stringify({ did, reason, tags }),
+			},
+		);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		return response;
+	} catch (error) {
+		console.error("Error banning user from TV:", error);
+		throw error;
+	}
+}
+
+export async function unbanUserFromTv(did: string) {
+	try {
+		const response = await fetch(
+			`${process.env.RSKY_FEEDGEN}/admin/ban?did=${encodeURIComponent(did)}`,
+			{
+				method: "DELETE",
+				headers: {
+					"X-RSKY-KEY": process.env.RSKY_API_KEY!,
+				},
+			},
+		);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		return response;
+	} catch (error) {
+		console.error("Error unbanning user from TV:", error);
+		throw error;
+	}
+}
+
+export async function searchBannedUsersFromTv(
+	did?: string,
+	tag?: string,
+	limit?: number,
+	offset?: number,
+) {
+	try {
+		const params = new URLSearchParams();
+		if (did) params.append("did", did);
+		if (tag) params.append("tag", tag);
+		if (limit) params.append("limit", limit.toString());
+		if (offset) params.append("offset", offset.toString());
+
+		const queryString = params.toString();
+		const url = `${process.env.RSKY_FEEDGEN}/admin/banned${queryString ? `?${queryString}` : ""}`;
+
+		const response = await fetch(url, {
+			method: "GET",
+			headers: {
+				"X-RSKY-KEY": process.env.RSKY_API_KEY!,
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		return await response.json();
+	} catch (error) {
+		console.error("Error searching banned users from TV:", error);
+		throw error;
+	}
+}

@@ -1,5 +1,6 @@
 jest.mock("../../src/repos/permissions", () => ({
 	customServiceGate: jest.fn(),
+	canPerformAction: jest.fn(),
 }));
 
 jest.mock("../../src/repos/moderation", () => ({
@@ -14,12 +15,13 @@ jest.mock("../../src/repos/logs", () => ({
 }));
 
 // Import the actual functions so we can cast them as mocks.
-import { customServiceGate } from "../../src/repos/permissions";
+import { customServiceGate, canPerformAction } from "../../src/repos/permissions";
 import { reportToBlacksky, reportToOzone } from "../../src/repos/moderation";
 import { createModerationLog } from "../../src/repos/logs";
 
 // Export the mocks for use in tests.
 export const mockedCustomServiceGate = customServiceGate as jest.Mock;
+export const mockedCanPerformAction = canPerformAction as jest.Mock;
 export const mockedReportToBlacksky = reportToBlacksky as jest.Mock;
 export const mockedReportToOzone = reportToOzone as jest.Mock;
 export const mockedCreateModerationLog = createModerationLog as jest.Mock;
