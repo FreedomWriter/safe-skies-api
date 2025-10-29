@@ -36,6 +36,8 @@ export const BLUE_SKY_ADMIN_CLIENT_META_DATA: OAuthClientMetadataInput = {
 	scope: 'atproto transition:generic',
 	response_types: ['code'],
 	application_type: 'web',
-	token_endpoint_auth_method: 'none',
+	token_endpoint_auth_method: 'private_key_jwt',
+	token_endpoint_auth_signing_alg: 'ES256',
+	jwks_uri: `${baseUrl}/admin/auth/jwks.json`,
 	dpop_bound_access_tokens: true,
 }
