@@ -67,3 +67,13 @@ export interface MuteFilters {
 	limit?: number;
 	offset?: number;
 }
+
+// Ozone moderation event types
+export type OzoneEventType =
+	| "takedown"
+	| "reverseTakedown"
+	| "acknowledge"
+	| "escalate"
+	| "comment"
+	| "label"
+	| "tag";
