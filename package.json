@@ -16,9 +16,10 @@
     "type-check": "tsc --noEmit",
     "format": "biome format . --write",
     "prepare": "husky install",
-    "migrate:create": "knex migrate:make",
-    "migrate:up": "knex migrate:latest",
-    "migrate:down": "knex migrate:down"
+    "migrate:create": "ts-node node_modules/.bin/knex migrate:make",
+    "migrate:up": "ts-node node_modules/.bin/knex migrate:latest",
+    "migrate:down": "ts-node node_modules/.bin/knex migrate:down",
+    "build:knexfile": "tsc knexfile.ts --outDir . --esModuleInterop --module commonjs --target ES2020 --skipLibCheck"
   },
   "keywords": [],
   "author": "",

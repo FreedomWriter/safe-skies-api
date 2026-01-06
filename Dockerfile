@@ -25,10 +25,15 @@ RUN chown -R node:node /usr/src/app
 
 USER node
 COPY --chown=node:node . .
-RUN npm run build
+RUN npm run build && npm run build:knexfile
 
 FROM base AS prodrunner
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh && sed -i 's/\r$//' ./docker-entrypoint.sh && chown node:node ./docker-entrypoint.sh
 USER node
 COPY --from=prodbuilder --chown=node:node /usr/src/app/node_modules ./node_modules
 COPY --from=prodbuilder --chown=node:node /usr/src/app/dist ./dist
-CMD node dist/src/server.js
+COPY --from=prodbuilder --chown=node:node /usr/src/app/migrations ./migrations
+COPY --from=prodbuilder --chown=node:node /usr/src/app/knexfile.js ./knexfile.js
+COPY --from=prodbuilder --chown=node:node /usr/src/app/package.json ./package.json
+ENTRYPOINT ["./docker-entrypoint.sh"]
