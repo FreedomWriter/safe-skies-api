@@ -39,13 +39,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Create test docker-compose override
-        run: |
-          cat > docker-compose.test.yml << EOF
-          services:
-            backend:
-              image: safe-skies-api:test
-          EOF
+      - name: Setup test environment
+        run: cp .env.test .env
 
       - name: Start test environment with built image
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
@@ -55,8 +50,4 @@ jobs:
 
       - name: Stop test environment
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml down
-        if: always()
-
-      - name: Clean up test files
-        run: rm -f docker-compose.test.yml
         if: always()

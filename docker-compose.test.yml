@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: safe-skies-api:test
+    env_file: .env.test
+  db:
+    environment:
+      - POSTGRES_PASSWORD=testpassword
