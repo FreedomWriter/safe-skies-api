@@ -4,4 +4,11 @@ services:
     env_file: .env.test
   db:
     environment:
+      - POSTGRES_DB=safeskiesdb
       - POSTGRES_PASSWORD=testpassword
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
