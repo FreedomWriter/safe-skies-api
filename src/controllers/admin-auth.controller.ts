@@ -131,7 +131,7 @@ export const adminStatus = async (req: Request, res: Response): Promise<void> =>
 		res.json({
 			isAuthenticated,
 			adminDid,
-			loginUrl: isAuthenticated ? null : `${process.env.BASE_URL}/admin/auth/signin?handle=${adminDid}`
+			loginUrl: isAuthenticated ? null : `${process.env.BASE_URL}/auth/admin/signin?handle=${adminDid}`
 		});
 	} catch (err) {
 		console.error("Error checking admin status:", err);

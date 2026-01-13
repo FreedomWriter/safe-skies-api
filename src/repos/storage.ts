@@ -5,14 +5,22 @@ import { decrypt, encrypt } from "../lib/utils/encryption";
  * StateStore manages short-lived OAuth state entries in the 'auth_states' table.
  */
 export class StateStore {
+	private prefix: string;
+
+	constructor(isAdmin: boolean = false) {
+		// Store the key for admin mute functionality separately
+		this.prefix = isAdmin ? "admin::" : "";
+	}
+
 	/**
 	 * Retrieves and decrypts a stored state by key.
 	 */
 	async get(key: string) {
 		try {
+			const prefixedKey = this.prefix + key;
 			const row = await db("auth_states")
 				.select("state")
-				.where({ key })
+				.where({ key: prefixedKey })
 				.first();
 
 			if (!row) {
@@ -50,12 +58,13 @@ export class StateStore {
 	 */
 	async set(key: string, value: object) {
 		try {
+			const prefixedKey = this.prefix + key;
 			const valueString = JSON.stringify(value);
 			const { iv, encrypted } = encrypt(valueString);
 			const encryptedState = JSON.stringify({ iv, encrypted });
 
 			await db("auth_states")
-				.insert({ key, state: encryptedState })
+				.insert({ key: prefixedKey, state: encryptedState })
 				.onConflict("key")
 				.merge({ state: encryptedState });
 		} catch (error) {
@@ -69,7 +78,8 @@ export class StateStore {
 	 */
 	async del(key: string) {
 		try {
-			await db("auth_states").where({ key }).del();
+			const prefixedKey = this.prefix + key;
+			await db("auth_states").where({ key: prefixedKey }).del();
 		} catch (error) {
 			console.error("StateStore.del error:", error);
 			throw error;
@@ -81,14 +91,21 @@ export class StateStore {
  * SessionStore manages longer-lived user sessions in the 'auth_sessions' table.
  */
 export class SessionStore {
+	private prefix: string;
+
+	constructor(isAdmin: boolean = false) {
+		this.prefix = isAdmin ? "admin::" : "";
+	}
+
 	/**
 	 * Retrieves and decrypts a stored session by key.
 	 */
 	async get(key: string) {
 		try {
+			const prefixedKey = this.prefix + key;
 			const row = await db("auth_sessions")
 				.select("session")
-				.where({ key })
+				.where({ key: prefixedKey })
 				.first();
 			if (!row) {
 				return undefined;
@@ -127,12 +144,13 @@ export class SessionStore {
 	 */
 	async set(key: string, value: object) {
 		try {
+			const prefixedKey = this.prefix + key;
 			const valueString = JSON.stringify(value);
 			const { iv, encrypted } = encrypt(valueString);
 			const encryptedSession = JSON.stringify({ iv, encrypted });
 
 			await db("auth_sessions")
-				.insert({ key, session: encryptedSession })
+				.insert({ key: prefixedKey, session: encryptedSession })
 				.onConflict("key")
 				.merge({ session: encryptedSession });
 		} catch (error) {
@@ -146,7 +164,8 @@ export class SessionStore {
 	 */
 	async del(key: string) {
 		try {
-			await db("auth_sessions").where({ key }).del();
+			const prefixedKey = this.prefix + key;
+			await db("auth_sessions").where({ key: prefixedKey }).del();
 		} catch (error) {
 			console.error("SessionStore.del error:", error);
 			throw error;

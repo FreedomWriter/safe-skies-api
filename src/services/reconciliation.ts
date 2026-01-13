@@ -73,7 +73,7 @@ export async function runReconciliation(): Promise<void> {
 		// Check if this is an OAuth authentication error
 		if (error instanceof Error && error.message.includes("OAuth session not found")) {
 			console.error(`Mute list reconciliation failed after ${duration}ms - Admin OAuth authentication required:`, error.message);
-			console.error(`Please authenticate admin at: ${process.env.BASE_URL}/admin/auth/signin?handle=${process.env.MUTE_LIST_ADMIN_DID}`);
+			console.error(`Please authenticate admin at: ${process.env.BASE_URL}/auth/admin/signin?handle=${process.env.MUTE_LIST_ADMIN_DID}`);
 		} else if (error instanceof Error && error.message.includes("session expired")) {
 			console.error(`Mute list reconciliation failed after ${duration}ms - Admin session expired:`, error.message);
 		} else {

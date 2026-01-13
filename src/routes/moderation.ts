@@ -6,6 +6,9 @@ import {
 	banFromTvBlacksky,
 	unbanFromTvBlacksky,
 	searchBanFromTvBlacksky,
+	getEscalatedUsers,
+	getProfileModerationData,
+	emitModerationEvent,
 } from "../controllers/moderation.controller";
 import {
 	muteUserHandler,
@@ -30,5 +33,9 @@ router.delete("/user/mute", authenticateJWT, unmuteUserHandler);
 router.get("/user/mute/check", authenticateJWT, checkMutedHandler);
 router.get("/user/mute", authenticateJWT, listMutedUsersHandler);
 
+// Ozone integration endpoints
+router.get("/escalated-users", authenticateJWT, getEscalatedUsers);
+router.post("/emit-event", authenticateJWT, emitModerationEvent);
+router.get("/profile/:did", authenticateJWT, getProfileModerationData);
 
 export default router;

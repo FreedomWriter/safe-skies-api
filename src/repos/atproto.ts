@@ -40,15 +40,15 @@ class AtpAgentSingleton {
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message.includes('not found') || error.message.includes('No session')) {
-					throw new Error(`Admin OAuth session not found. Please authenticate at ${process.env.BASE_URL}/admin/auth/signin`);
+					throw new Error(`Admin OAuth session not found. Please authenticate at ${process.env.BASE_URL}/auth/admin/signin`);
 				}
 				if (error.message.includes('expired') || error.message.includes('refresh')) {
-					throw new Error(`Admin session expired and refresh failed. Please re-authenticate at ${process.env.BASE_URL}/admin/auth/signin`);
+					throw new Error(`Admin session expired and refresh failed. Please re-authenticate at ${process.env.BASE_URL}/auth/admin/signin`);
 				}
 			}
 
 			console.error("Error getting authenticated admin agent:", error);
-			throw new Error(`Failed to get authenticated admin agent. Please re-authenticate at ${process.env.BASE_URL}/admin/auth/signin`);
+			throw new Error(`Failed to get authenticated admin agent. Please re-authenticate at ${process.env.BASE_URL}/auth/admin/signin`);
 		}
 	}
 }

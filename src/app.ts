@@ -38,8 +38,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/auth/admin', adminAuthRouter);
 app.use('/auth', authRouter);
-app.use('/admin/auth', adminAuthRouter);
 app.use('/oauth', clientMetadataRouter);
 app.use('/api/feeds', feedsRouter);
 app.use('/api', profileRouter);
