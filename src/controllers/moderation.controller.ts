@@ -538,6 +538,55 @@ const isAccountSubject = (subject: unknown): subject is { did: string } =>
 const isRecordSubject = (subject: unknown): subject is { uri: string; cid: string } =>
 	typeof subject === 'object' && subject !== null && 'uri' in subject;
 
+// PLC Directory response types
+interface PlcDirectoryResponse {
+	id: string;
+	alsoKnownAs?: string[];
+	verificationMethod?: Array<{
+		id: string;
+		type: string;
+		controller: string;
+		publicKeyMultibase: string;
+	}>;
+	service?: Array<{
+		id: string;
+		type: string;
+		serviceEndpoint: string;
+	}>;
+}
+
+/**
+ * Fetches PDS endpoint from PLC directory for a given DID
+ * Returns the PDS service endpoint URL or null if not found
+ */
+async function fetchPdsFromPlcDirectory(did: string): Promise<{ pdsEndpoint: string | null; error?: string }> {
+	try {
+		const response = await fetch(`https://plc.directory/${did}`);
+
+		if (response.status === 404) {
+			return { pdsEndpoint: null, error: "DID not registered in PLC directory" };
+		}
+
+		if (response.status === 410) {
+			return { pdsEndpoint: null, error: "DID has been tombstoned (deleted)" };
+		}
+
+		if (!response.ok) {
+			return { pdsEndpoint: null, error: `PLC directory returned status ${response.status}` };
+		}
+
+		const data = await response.json() as PlcDirectoryResponse;
+
+		// Find the atproto PDS service endpoint
+		const pdsService = data.service?.find(s => s.id === "#atproto_pds" || s.type === "AtprotoPersonalDataServer");
+
+		return { pdsEndpoint: pdsService?.serviceEndpoint || null };
+	} catch (error) {
+		console.error(`Error fetching PLC directory for ${did}:`, error);
+		return { pdsEndpoint: null, error: error instanceof Error ? error.message : "Unknown error" };
+	}
+}
+
 export const getEscalatedUsers = async (
 	req: Request,
 	res: Response,
@@ -751,11 +800,19 @@ export const getProfileModerationData = async (
 			console.warn(`Failed to fetch profile for ${did}:`, profileError);
 		}
 
+		// Fetch PDS endpoint from PLC directory
+		let pdsInfo: { pdsEndpoint: string | null; error?: string } = { pdsEndpoint: null };
+		if (did.startsWith("did:plc:")) {
+			pdsInfo = await fetchPdsFromPlcDirectory(did);
+		}
+
 		res.status(200).json({
 			did,
 			subjectStatus,
 			recentEvents,
 			profile,
+			pdsEndpoint: pdsInfo.pdsEndpoint,
+			...(pdsInfo.error && { pdsError: pdsInfo.error }),
 		});
 	} catch (error) {
 		console.error("Error fetching profile moderation data:", error);
